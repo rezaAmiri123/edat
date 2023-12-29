@@ -53,6 +53,11 @@ func (r AggregateRoot) EntityName() string {
 	return r.aggregate.EntityName()
 }
 
+// AggregateName returns the Name of the root aggregate
+func (r AggregateRoot) AggregateName() string {
+	return r.aggregate.EntityName()
+}
+
 // Aggregate returns the aggregate that resides at the root
 func (r AggregateRoot) Aggregate() Aggregate {
 	return r.aggregate
