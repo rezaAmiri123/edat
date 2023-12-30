@@ -93,6 +93,11 @@ github.com/pierrec/lz4/v4/internal/xxh32
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/rs/zerolog v1.15.0
+## explicit
+github.com/rs/zerolog
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
 # github.com/segmentio/kafka-go v0.4.47
 ## explicit; go 1.15
 github.com/segmentio/kafka-go
