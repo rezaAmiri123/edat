@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/go-chi/chi/v5 v5.0.11
+	github.com/go-chi/render v1.0.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.5.0
 	github.com/jackc/pgconn v1.14.1
@@ -13,6 +14,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/rs/zerolog v1.15.0
 	github.com/segmentio/kafka-go v0.4.47
+	github.com/stackus/errors v0.1.5
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sync v0.4.0
 	google.golang.org/grpc v1.60.1
@@ -20,6 +22,7 @@ require (
 )
 
 require (
+	github.com/ajg/form v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
