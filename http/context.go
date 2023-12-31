@@ -1,4 +1,4 @@
-package http
+package edathttp
 
 import (
 	"context"
