@@ -3,12 +3,14 @@ module github.com/rezaAmiri123/edat
 go 1.20
 
 require (
+	github.com/go-chi/chi/v5 v5.0.11
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.5.0
 	github.com/jackc/pgconn v1.14.1
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/nats-io/stan.go v0.10.4
+	github.com/pkg/errors v0.8.1
 	github.com/rs/zerolog v1.15.0
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/stretchr/testify v1.8.4
@@ -34,7 +36,6 @@ require (
 	github.com/nats-io/nkeys v0.4.6 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
