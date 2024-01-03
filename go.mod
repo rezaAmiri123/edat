@@ -15,6 +15,7 @@ require (
 	github.com/prometheus/client_golang v0.9.3
 	github.com/rs/zerolog v1.15.0
 	github.com/segmentio/kafka-go v0.4.47
+	github.com/shamaton/msgpack v1.2.1
 	github.com/stackus/errors v0.1.5
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sync v0.4.0

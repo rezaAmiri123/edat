@@ -187,6 +187,15 @@ github.com/segmentio/kafka-go/protocol/saslhandshake
 github.com/segmentio/kafka-go/protocol/syncgroup
 github.com/segmentio/kafka-go/protocol/txnoffsetcommit
 github.com/segmentio/kafka-go/sasl
+# github.com/shamaton/msgpack v1.2.1
+## explicit
+github.com/shamaton/msgpack
+github.com/shamaton/msgpack/def
+github.com/shamaton/msgpack/ext
+github.com/shamaton/msgpack/internal/common
+github.com/shamaton/msgpack/internal/decoding
+github.com/shamaton/msgpack/internal/encoding
+github.com/shamaton/msgpack/time
 # github.com/stackus/errors v0.1.5
 ## explicit; go 1.13
 github.com/stackus/errors
