@@ -37,7 +37,7 @@ type MessagePublisher interface {
 // Publisher send domain events, commands, and replies to the publisher
 type Publisher struct {
 	producer Producer
-	logger   log.Logger
+	logger   edatlog.Logger
 	close    sync.Once
 }
 
@@ -53,7 +53,7 @@ var _ interface {
 func NewPublisher(producer Producer, options ...PublisherOption)*Publisher{
 	p := &Publisher{
 		producer: producer,
-		logger: log.DefaultLogger,
+		logger: edatlog.DefaultLogger,
 	}
 
 	for _, option := range options{
@@ -81,21 +81,21 @@ func(p *Publisher)PublisheCommand(ctx context.Context, replyChannel string, comm
 	msgOptions = append(msgOptions, options...)
 
 	logger := p.logger.Sub(
-		log.String("CommandName", command.CommandName()),
+		edatlog.String("CommandName", command.CommandName()),
 	)
 
 	logger.Trace("publishing command")
 
 	payload, err := core.SerializeCommand(command)
 	if err!= nil{
-		logger.Error("error serializing command payload", log.Error(err))
+		logger.Error("error serializing command payload", edatlog.Error(err))
 		return err
 	}
 
 	message := NewMessage(payload, msgOptions...)
 	err = p.Publish(ctx, message)
 	if err!= nil{
-		logger.Error("error publishing command", log.Error(err))
+		logger.Error("error publishing command", edatlog.Error(err))
 	}
 
 	return err
@@ -119,13 +119,13 @@ func(p *Publisher)PublishEntityEvents(ctx context.Context, entity core.Entity, o
 
 	for _, event := range entity.Events(){
 		logger := p.logger.Sub(
-			log.String("EntityID", entity.EntityName()),
-			log.String("EtityName", entity.EntityName()),
+			edatlog.String("EntityID", entity.EntityName()),
+			edatlog.String("EtityName", entity.EntityName()),
 		)
 
 		err := p.PublishEvent(ctx, event, msgOptions...)
 		if err!= nil{
-			logger.Error("error publishing entity event", log.Error(err))
+			logger.Error("error publishing entity event", edatlog.Error(err))
 			return err
 		}
 	}
@@ -147,14 +147,14 @@ func(p *Publisher)PublishEvent(ctx context.Context, event core.Event, options ..
 	msgOptions = append(msgOptions, options...)
 
 	logger := p.logger.Sub(
-		log.String("EventName", event.EventName()),
+		edatlog.String("EventName", event.EventName()),
 	)
 
 	logger.Trace("publishing event")
 
 	payload, err := core.SerializeEvent(event)
 	if err != nil {
-		logger.Error("error serializing event payload", log.Error(err))
+		logger.Error("error serializing event payload", edatlog.Error(err))
 		return err
 	}
 
@@ -162,7 +162,7 @@ func(p *Publisher)PublishEvent(ctx context.Context, event core.Event, options ..
 
 	err = p.Publish(ctx, message)
 	if err != nil {
-		logger.Error("error publishing event", log.Error(err))
+		logger.Error("error publishing event", edatlog.Error(err))
 	}
 
 	return err
@@ -183,14 +183,14 @@ func(p *Publisher)PublishReply(ctx context.Context, reply core.Reply, options ..
 	msgOptions = append(msgOptions, options...)
 
 	logger := p.logger.Sub(
-		log.String("ReplyName", reply.ReplyName()),
+		edatlog.String("ReplyName", reply.ReplyName()),
 	)
 
 	logger.Trace("publishing reply")
 
 	payload, err := core.SerializeReply(reply)
 	if err != nil {
-		logger.Error("error serializing reply payload", log.Error(err))
+		logger.Error("error serializing reply payload", edatlog.Error(err))
 		return err
 	}
 
@@ -198,7 +198,7 @@ func(p *Publisher)PublishReply(ctx context.Context, reply core.Reply, options ..
 
 	err = p.Publish(ctx, message)
 	if err != nil {
-		logger.Error("error publishing reply", log.Error(err))
+		logger.Error("error publishing reply", edatlog.Error(err))
 	}
 
 	return err
@@ -226,18 +226,18 @@ func(p *Publisher)Publish(ctx context.Context, message Message) error{
 	}
 
 	logger := p.logger.Sub(
-		log.String("MessageID", message.ID()),
-		log.String("CorrelationID", message.Headers()[MessageCorrelationID]),
-		log.String("CausationID", message.Headers()[MessageCausationID]),
-		log.String("Destination", channel),
-		log.Int("PayloadSize", len(message.Payload())),
+		edatlog.String("MessageID", message.ID()),
+		edatlog.String("CorrelationID", message.Headers()[MessageCorrelationID]),
+		edatlog.String("CausationID", message.Headers()[MessageCausationID]),
+		edatlog.String("Destination", channel),
+		edatlog.Int("PayloadSize", len(message.Payload())),
 	)
 
 	logger.Trace("publishing message")
 
 	err = p.producer.Send(ctx, channel, message)
 	if err!= nil{
-		logger.Error("error publishing message", log.Error(err))
+		logger.Error("error publishing message", edatlog.Error(err))
 		return err
 	}
 

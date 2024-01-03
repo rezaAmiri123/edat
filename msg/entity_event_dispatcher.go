@@ -13,7 +13,7 @@ type EntityEventHandlerFunc func(context.Context, EntityEvent) error
 // EntityEventDispatcher is a MessageReceiver for DomainEvents
 type EntityEventDispatcher struct {
 	handlers map[string]EntityEventHandlerFunc
-	logger   log.Logger
+	logger   edatlog.Logger
 }
 
 var _ MessageReceiver = (*EntityEventDispatcher)(nil)
@@ -22,7 +22,7 @@ var _ MessageReceiver = (*EntityEventDispatcher)(nil)
 func NewEntityEventDispatcher(options ...EntityEventDispatcherOption) *EntityEventDispatcher {
 	c := &EntityEventDispatcher{
 		handlers: map[string]EntityEventHandlerFunc{},
-		logger:   log.DefaultLogger,
+		logger:   edatlog.DefaultLogger,
 	}
 
 	for _, option := range options {
@@ -36,7 +36,7 @@ func NewEntityEventDispatcher(options ...EntityEventDispatcherOption) *EntityEve
 
 // Handle adds a new Event that will be handled by EventMessageFunc handler
 func (d *EntityEventDispatcher) Handle(evt core.Event, handler EntityEventHandlerFunc) *EntityEventDispatcher {
-	d.logger.Trace("entity event handler added", log.String("EventName", evt.EventName()))
+	d.logger.Trace("entity event handler added", edatlog.String("EventName", evt.EventName()))
 	d.handlers[evt.EventName()] = handler
 	return d
 }
@@ -45,27 +45,27 @@ func (d *EntityEventDispatcher) Handle(evt core.Event, handler EntityEventHandle
 func (d *EntityEventDispatcher) ReceiveMessage(ctx context.Context, message Message) error {
 	eventName, err := message.Headers().GetRequired(MessageEventName)
 	if err != nil {
-		d.logger.Error("error reading event name", log.Error(err))
+		d.logger.Error("error reading event name", edatlog.Error(err))
 		return nil
 	}
 
 	entityName, err := message.Headers().GetRequired(MessageEventEntityName)
 	if err != nil {
-		d.logger.Error("error reading entity name", log.Error(err))
+		d.logger.Error("error reading entity name", edatlog.Error(err))
 		return nil
 	}
 
 	entityID, err := message.Headers().GetRequired(MessageEventEntityID)
 	if err != nil {
-		d.logger.Error("error reading entity id", log.Error(err))
+		d.logger.Error("error reading entity id", edatlog.Error(err))
 		return nil
 	}
 
 	logger := d.logger.Sub(
-		log.String("EntityName", entityName),
-		log.String("EntityID", entityID),
-		log.String("EventName", eventName),
-		log.String("MessageID", message.ID()),
+		edatlog.String("EntityName", entityName),
+		edatlog.String("EntityID", entityID),
+		edatlog.String("EventName", eventName),
+		edatlog.String("MessageID", message.ID()),
 	)
 
 	logger.Debug("received entity event message")
@@ -81,7 +81,7 @@ func (d *EntityEventDispatcher) ReceiveMessage(ctx context.Context, message Mess
 
 	event, err := core.DeserializeEvent(eventName, message.Payload())
 	if err != nil {
-		logger.Error("error decoding entity event message payload", log.Error(err))
+		logger.Error("error decoding entity event message payload", edatlog.Error(err))
 		return nil
 	}
 
@@ -89,7 +89,7 @@ func (d *EntityEventDispatcher) ReceiveMessage(ctx context.Context, message Mess
 
 	err = handler(ctx, evtMsg)
 	if err != nil {
-		logger.Error("entity event handler returned an error", log.Error(err))
+		logger.Error("entity event handler returned an error", edatlog.Error(err))
 	}
 
 	return err

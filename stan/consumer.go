@@ -19,13 +19,13 @@ type Consumer struct {
 	serializer  Serializer
 	subOptions  []stan.SubscriptionOption
 	listeningWG sync.WaitGroup
-	logger      log.Logger
+	logger      edatlog.Logger
 }
 
 var _ msg.Consumer = (*Consumer)(nil)
 
 func (c *Consumer) Listen(ctx context.Context, channel string, subscription msg.ReceiveMessageFunc) error {
-	logger := c.logger.Sub(log.String("Channel", channel))
+	logger := c.logger.Sub(edatlog.String("Channel", channel))
 
 	defer logger.Trace("stopped listening")
 
@@ -43,7 +43,7 @@ func (c *Consumer) Close(ctx context.Context) error {
 	c.logger.Trace("closing message source")
 	err := c.conn.Close()
 	if err != nil {
-		c.logger.Error("error closing message source", log.Error(err))
+		c.logger.Error("error closing message source", edatlog.Error(err))
 	}
 
 	return err
@@ -63,7 +63,7 @@ func (c *Consumer) consumeMessage(ctx context.Context, receiver msg.ReceiveMessa
 		var message msg.Message
 		message, err = c.serializer.Deserialize(stanMsg)
 		if err != nil {
-			c.logger.Error("message failed to unmarshal", log.Error(err))
+			c.logger.Error("message failed to unmarshal", edatlog.Error(err))
 			return
 		}
 
@@ -79,7 +79,7 @@ func (c *Consumer) consumeMessage(ctx context.Context, receiver msg.ReceiveMessa
 		case err = <-errc:
 			if err == nil {
 				if ackErr := stanMsg.Ack(); ackErr != nil {
-					c.logger.Error("error acknowledging message", log.Error(err))
+					c.logger.Error("error acknowledging message", edatlog.Error(err))
 				}
 			}
 		case <-wCtx.Done():

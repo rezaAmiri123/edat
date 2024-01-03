@@ -17,7 +17,7 @@ import (
 type MessageStore struct {
 	tableName string
 	client    Client
-	logger    log.Logger
+	logger    edatlog.Logger
 }
 
 var _ interface {
@@ -29,7 +29,7 @@ func NewMessageStore(client Client, options ...MessageStoreOption) *MessageStore
 	s := &MessageStore{
 		tableName: DefaultMessageTableName,
 		client:    client,
-		logger:    log.DefaultLogger,
+		logger:    edatlog.DefaultLogger,
 	}
 
 	for _, option := range options {

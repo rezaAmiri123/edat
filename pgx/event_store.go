@@ -14,7 +14,7 @@ import (
 type EventStore struct {
 	tableName string
 	client    Client
-	logger    log.Logger
+	logger    edatlog.Logger
 }
 
 var _ es.AggregateRootStore = (*EventStore)(nil)
@@ -23,7 +23,7 @@ func NewEventStore(cliet Client, options ...EventStoreOption) *EventStore {
 	store := &EventStore{
 		tableName: DefaultEventTableName,
 		client:    cliet,
-		logger:    log.DefaultLogger,
+		logger:    edatlog.DefaultLogger,
 	}
 
 	for _, option := range options {
@@ -85,10 +85,10 @@ func (s *EventStore) Save(ctx context.Context, root *es.AggregateRoot) (err erro
 		p := recover()
 		switch {
 		case p != nil:
-			_ = tx.Rollback()
+			_ = tx.Rollback(ctx)
 			panic(p)
 		case err != nil:
-			_ = tx.Rollback()
+			_ = tx.Rollback(ctx)
 		default:
 			err = tx.Commit(ctx)
 		}

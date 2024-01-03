@@ -12,7 +12,7 @@ import (
 type Producer struct {
 	writer     *kafka.Writer
 	serializer Serializer
-	logger     log.Logger
+	logger     edatlog.Logger
 }
 
 var _ msg.Producer = (*Producer)(nil)
@@ -37,7 +37,7 @@ func NewProducer(brokers []string, options ...ProducerOption) *Producer {
 func (p *Producer) Send(ctx context.Context, channel string, message msg.Message) error {
 	kafkaMsg, err := p.serializer.Serialize(message)
 	if err != nil {
-		p.logger.Error("failed to marshal message", log.Error(err))
+		p.logger.Error("failed to marshal message", edatlog.Error(err))
 		return err
 	}
 
@@ -51,7 +51,7 @@ func (p *Producer) Close(ctx context.Context) error {
 	p.logger.Trace("closing message destination")
 	err := p.writer.Close()
 	if err!= nil{
-		p.logger.Error("error closing message destination", log.Error(err))
+		p.logger.Error("error closing message destination", edatlog.Error(err))
 	}
 
 	return err

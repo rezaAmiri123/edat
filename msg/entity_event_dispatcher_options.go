@@ -6,7 +6,7 @@ import "github.com/rezaAmiri123/edat/log"
 type EntityEventDispatcherOption func(consumer *EntityEventDispatcher)
 
 // WithEntityEventDispatcherLogger is an option to set the log.Logger of the EntityEventDispatcher
-func WithEntityEventDispatcherLogger(logger log.Logger)EntityEventDispatcherOption{
+func WithEntityEventDispatcherLogger(logger edatlog.Logger)EntityEventDispatcherOption{
 	return func(dispatcher *EntityEventDispatcher) {
 		dispatcher.logger = logger
 	}

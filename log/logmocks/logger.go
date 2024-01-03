@@ -3,7 +3,7 @@
 package logmocks
 
 import (
-	log "github.com/rezaAmiri123/edat/log"
+	edatlog "github.com/rezaAmiri123/edat/log"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -13,7 +13,7 @@ type Logger struct {
 }
 
 // Debug provides a mock function with given fields: msg, fields
-func (_m *Logger) Debug(msg string, fields ...log.Field) {
+func (_m *Logger) Debug(msg string, fields ...edatlog.Field) {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
@@ -25,7 +25,7 @@ func (_m *Logger) Debug(msg string, fields ...log.Field) {
 }
 
 // Error provides a mock function with given fields: msg, fields
-func (_m *Logger) Error(msg string, fields ...log.Field) {
+func (_m *Logger) Error(msg string, fields ...edatlog.Field) {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
@@ -37,7 +37,7 @@ func (_m *Logger) Error(msg string, fields ...log.Field) {
 }
 
 // Info provides a mock function with given fields: msg, fields
-func (_m *Logger) Info(msg string, fields ...log.Field) {
+func (_m *Logger) Info(msg string, fields ...edatlog.Field) {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
@@ -49,7 +49,7 @@ func (_m *Logger) Info(msg string, fields ...log.Field) {
 }
 
 // Sub provides a mock function with given fields: fields
-func (_m *Logger) Sub(fields ...log.Field) log.Logger {
+func (_m *Logger) Sub(fields ...edatlog.Field) edatlog.Logger {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
@@ -58,12 +58,12 @@ func (_m *Logger) Sub(fields ...log.Field) log.Logger {
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 log.Logger
-	if rf, ok := ret.Get(0).(func(...log.Field) log.Logger); ok {
+	var r0 edatlog.Logger
+	if rf, ok := ret.Get(0).(func(...edatlog.Field) edatlog.Logger); ok {
 		r0 = rf(fields...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(log.Logger)
+			r0 = ret.Get(0).(edatlog.Logger)
 		}
 	}
 
@@ -71,7 +71,7 @@ func (_m *Logger) Sub(fields ...log.Field) log.Logger {
 }
 
 // Trace provides a mock function with given fields: msg, fields
-func (_m *Logger) Trace(msg string, fields ...log.Field) {
+func (_m *Logger) Trace(msg string, fields ...edatlog.Field) {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
@@ -83,7 +83,7 @@ func (_m *Logger) Trace(msg string, fields ...log.Field) {
 }
 
 // Warn provides a mock function with given fields: msg, fields
-func (_m *Logger) Warn(msg string, fields ...log.Field) {
+func (_m *Logger) Warn(msg string, fields ...edatlog.Field) {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]

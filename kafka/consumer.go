@@ -19,7 +19,7 @@ type Consumer struct {
 	groupID    string
 	ackWait    time.Duration
 	serializer Serializer
-	logger     log.Logger
+	logger     edatlog.Logger
 	dialer     *kafka.Dialer
 }
 
@@ -32,7 +32,7 @@ func NewConsumer(brokers []string, groupID string, options ...ConsumerOption) *C
 		groupID:    groupID,
 		ackWait:    DefaultAckWait,
 		serializer: DefaultSerializer,
-		logger:     log.DefaultLogger,
+		logger:     edatlog.DefaultLogger,
 		dialer:     kafka.DefaultDialer,
 	}
 

@@ -12,13 +12,13 @@ type zerologLogger struct {
 	l zerolog.Logger
 }
 
-var _ log.Logger = (*zerologLogger)(nil)
+var _ edatlog.Logger = (*zerologLogger)(nil)
 
-func Logger(logger zerolog.Logger) log.Logger {
+func Logger(logger zerolog.Logger) edatlog.Logger {
 	zLog := logger.With().CallerWithSkipFrameCount(3).Logger()
 	return &zerologLogger{l: zLog}
 }
-func NewZeroLogger(cfg log.Config) (log.Logger, error) {
+func NewZeroLogger(cfg edatlog.Config) (edatlog.Logger, error) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -47,7 +47,7 @@ func NewZeroLogger(cfg log.Config) (log.Logger, error) {
 	return &zerologLogger{l: zLog}, nil
 }
 
-func (l *zerologLogger) Trace(msg string, fields ...log.Field) {
+func (l *zerologLogger) Trace(msg string, fields ...edatlog.Field) {
 	if l.l.GetLevel() > zerolog.DebugLevel {
 		return
 	}
@@ -55,7 +55,7 @@ func (l *zerologLogger) Trace(msg string, fields ...log.Field) {
 	logger.Debug().Msg(msg)
 }
 
-func (l *zerologLogger) Debug(msg string, fields ...log.Field) {
+func (l *zerologLogger) Debug(msg string, fields ...edatlog.Field) {
 	if l.l.GetLevel() > zerolog.DebugLevel {
 		return
 	}
@@ -64,7 +64,7 @@ func (l *zerologLogger) Debug(msg string, fields ...log.Field) {
 
 }
 
-func (l *zerologLogger) Info(msg string, fields ...log.Field) {
+func (l *zerologLogger) Info(msg string, fields ...edatlog.Field) {
 	if l.l.GetLevel() > zerolog.InfoLevel {
 		return
 	}
@@ -72,7 +72,7 @@ func (l *zerologLogger) Info(msg string, fields ...log.Field) {
 	logger.Info().Msg(msg)
 }
 
-func (l *zerologLogger) Warn(msg string, fields ...log.Field) {
+func (l *zerologLogger) Warn(msg string, fields ...edatlog.Field) {
 	if l.l.GetLevel() > zerolog.WarnLevel {
 		return
 	}
@@ -81,7 +81,7 @@ func (l *zerologLogger) Warn(msg string, fields ...log.Field) {
 
 }
 
-func (l *zerologLogger) Error(msg string, fields ...log.Field) {
+func (l *zerologLogger) Error(msg string, fields ...edatlog.Field) {
 	if l.l.GetLevel() > zerolog.ErrorLevel {
 		return
 	}
@@ -90,22 +90,22 @@ func (l *zerologLogger) Error(msg string, fields ...log.Field) {
 
 }
 
-func (l *zerologLogger) Sub(fields ...log.Field) log.Logger {
+func (l *zerologLogger) Sub(fields ...edatlog.Field) edatlog.Logger {
 	return &zerologLogger{
 		l: l.fields(l.l.With(), fields).Logger(),
 	}
 }
 
-func (l *zerologLogger) fields(ctx zerolog.Context, fields []log.Field) zerolog.Context {
+func (l *zerologLogger) fields(ctx zerolog.Context, fields []edatlog.Field) zerolog.Context {
 	for _, field := range fields {
 		switch field.Type {
-		case log.StringType:
+		case edatlog.StringType:
 			ctx = ctx.Str(field.Key, field.String)
-		case log.IntType:
+		case edatlog.IntType:
 			ctx = ctx.Int(field.Key, field.Int)
-		case log.DurationType:
+		case edatlog.DurationType:
 			ctx = ctx.Str(field.Key, field.Duration.String())
-		case log.ErrorType:
+		case edatlog.ErrorType:
 			ctx = ctx.Stack().Err(field.Error)
 		}
 	}
@@ -113,17 +113,17 @@ func (l *zerologLogger) fields(ctx zerolog.Context, fields []log.Field) zerolog.
 	return ctx
 }
 
-func logLevelToZero(level log.Level) zerolog.Level {
+func logLevelToZero(level edatlog.Level) zerolog.Level {
 	switch level {
-	case log.PANIC:
+	case edatlog.PANIC:
 		return zerolog.PanicLevel
-	case log.ERROR:
+	case edatlog.ERROR:
 		return zerolog.ErrorLevel
-	case log.WARN:
+	case edatlog.WARN:
 		return zerolog.WarnLevel
-	case log.INFO:
+	case edatlog.INFO:
 		return zerolog.InfoLevel
-	case log.DEBUG, log.TRACE:
+	case edatlog.DEBUG, edatlog.TRACE:
 		return zerolog.DebugLevel
 	default:
 		return zerolog.InfoLevel

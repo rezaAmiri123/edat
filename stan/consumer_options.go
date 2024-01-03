@@ -28,7 +28,7 @@ func WithConsumerSerializer(serializer Serializer) ConsumerOption {
 	}
 }
 
-func WithConsumerLogger(logger log.Logger)ConsumerOption{
+func WithConsumerLogger(logger edatlog.Logger)ConsumerOption{
 	return func(cosumer *Consumer) {
 		cosumer.logger = logger
 	}

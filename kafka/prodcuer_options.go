@@ -13,7 +13,7 @@ func WithProducerSerializer(serializer Serializer) ProducerOption {
 	}
 }
 
-func WithProducerLogger(logger log.Logger) ProducerOption {
+func WithProducerLogger(logger edatlog.Logger) ProducerOption {
 	return func(producer *Producer) {
 		producer.logger = logger
 	}

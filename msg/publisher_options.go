@@ -6,7 +6,7 @@ import "github.com/rezaAmiri123/edat/log"
 type PublisherOption func(publisher *Publisher)
 
 // WithPublisherLogger is an option to set the log.Logger of the Publisher
-func WithPublisherLogger(logger log.Logger)PublisherOption{
+func WithPublisherLogger(logger edatlog.Logger)PublisherOption{
 	return func(publisher *Publisher) {
 		publisher.logger = logger
 	}

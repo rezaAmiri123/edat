@@ -8,11 +8,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RpcSessionUnrayInterceptor(conn *pgxpool.Pool, logger log.Logger) grpc.UnaryServerInterceptor {
+func RpcSessionUnrayInterceptor(conn *pgxpool.Pool, logger edatlog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		tx, err := conn.Begin(ctx)
 		if err != nil {
-			logger.Error("error while starting the request transaction", log.Error(err))
+			logger.Error("error while starting the request transaction", edatlog.Error(err))
 			return
 		}
 
@@ -24,18 +24,18 @@ func RpcSessionUnrayInterceptor(conn *pgxpool.Pool, logger log.Logger) grpc.Unar
 			case p != nil:
 				txErr := tx.Rollback(ctx)
 				if txErr != nil {
-					logger.Error("error while rolling back the rpc request transaction during panic", log.Error(txErr))
+					logger.Error("error while rolling back the rpc request transaction during panic", edatlog.Error(txErr))
 				}
 				panic(p)
 			case err != nil:
 				txErr := tx.Rollback(ctx)
 				if txErr != nil {
-					logger.Error("error while rollng back the rpc request transaction", log.Error(txErr))
+					logger.Error("error while rollng back the rpc request transaction", edatlog.Error(txErr))
 				}
 			default:
 				txErr := tx.Commit(ctx)
 				if txErr != nil {
-					logger.Error("error while commiting the rpc request transaction", log.Error(err))
+					logger.Error("error while commiting the rpc request transaction", edatlog.Error(err))
 				}
 			}
 		}()
@@ -44,7 +44,7 @@ func RpcSessionUnrayInterceptor(conn *pgxpool.Pool, logger log.Logger) grpc.Unar
 	}
 }
 
-func RpcSessionStreamInterceptor(_ *pgxpool.Pool, logger log.Logger) grpc.StreamServerInterceptor {
+func RpcSessionStreamInterceptor(_ *pgxpool.Pool, logger edatlog.Logger) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		logger.Error("outbox pattern not yet implemented for streaming connections")
 		return handler(srv, ss)

@@ -46,7 +46,7 @@ func WithPollingProcessorPurgeInterval(purgeInterval time.Duration) PollingProce
 }
 
 // WithPollingProcessorLogger sets the log.Logger for PollingProcessor
-func WithPollingProcessorLogger(logger log.Logger) PollingProcessorOption {
+func WithPollingProcessorLogger(logger edatlog.Logger) PollingProcessorOption {
 	return func(processor *PollingProcessor) {
 		processor.logger = logger
 	}

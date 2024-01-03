@@ -10,7 +10,7 @@ func WithMessageStoreTableName(tableName string) MessageStoreOption {
 	}
 }
 
-func WithMessageStoreLogger(logger log.Logger) MessageStoreOption {
+func WithMessageStoreLogger(logger edatlog.Logger) MessageStoreOption {
 	return func(store *MessageStore) {
 		store.logger = logger
 	}

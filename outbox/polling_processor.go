@@ -20,7 +20,7 @@ type PollingProcessor struct {
 	purgeOlderThan   time.Duration
 	purgeIterval     time.Duration
 	retryer          retry.Retryer
-	logger           log.Logger
+	logger           edatlog.Logger
 	stopping         chan struct{}
 	close            sync.Once
 }
@@ -37,7 +37,7 @@ func NewPollingProcessor(in MessageStore, out msg.MessagePublisher, options ...P
 		purgeOlderThan:   DefaultPurgeOlderThan,
 		purgeIterval:     DefaultPurgeInterval,
 		retryer:          DefaultRetryer,
-		logger:           log.DefaultLogger,
+		logger:           edatlog.DefaultLogger,
 		stopping:         make(chan struct{}),
 	}
 
@@ -111,12 +111,12 @@ func (p *PollingProcessor) processMessages(ctx context.Context) error {
 		})
 
 		if err != nil {
-			p.logger.Error("error fetching message", log.Error(err))
+			p.logger.Error("error fetching message", edatlog.Error(err))
 			return err
 		}
 
 		if len(messages) > 0 {
-			p.logger.Trace("processong message", log.Int("MessageCount", len(messages)))
+			p.logger.Trace("processong message", edatlog.Int("MessageCount", len(messages)))
 			ids := make([]string, 0, len(messages))
 			for _, message := range messages {
 				err := p.processMessage(ctx, message)
@@ -159,19 +159,19 @@ func (p *PollingProcessor) processMessage(ctx context.Context, message Message) 
 	var outgoingMsg msg.Message
 
 	logger := p.logger.Sub(
-		log.String("MessageID", message.MessageID),
-		log.String("DestinationChannel", message.Destination),
+		edatlog.String("MessageID", message.MessageID),
+		edatlog.String("DestinationChannel", message.Destination),
 	)
 
 	outgoingMsg, err = message.ToMessage()
 	if err != nil {
-		logger.Error("error with transforming stored message", log.Error(err))
+		logger.Error("error with transforming stored message", edatlog.Error(err))
 		// TODO this has potential to halt processing; systems need to be in place to fix or address
 		return err
 	}
 	err = p.out.Publish(ctx, outgoingMsg)
 	if err != nil {
-		logger.Error("error publishing message", log.Error(err))
+		logger.Error("error publishing message", edatlog.Error(err))
 		// TODO this has potential to halt processing; systems need to be in place to fix or address
 		return err
 	}
@@ -188,7 +188,7 @@ func (p *PollingProcessor) purgePublished(ctx context.Context) error {
 		})
 
 		if err != nil {
-			p.logger.Error("error purging pubished message", log.Error(err))
+			p.logger.Error("error purging pubished message", edatlog.Error(err))
 			return err
 		}
 

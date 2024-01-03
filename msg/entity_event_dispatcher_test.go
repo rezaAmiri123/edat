@@ -21,7 +21,7 @@ func TestEntityEventDispatcher_ReceiveMessage(t *testing.T){
 	}
 	type fields struct {
 		handlers []handler
-		logger   log.Logger
+		logger   edatlog.Logger
 	}
 	type args struct {
 		ctx     context.Context

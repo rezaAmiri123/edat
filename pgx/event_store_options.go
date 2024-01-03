@@ -10,7 +10,7 @@ func WithEventStoreTableName(tableName string)EventStoreOption{
 	}
 }
 
-func WithEventStoreLogger(logger log.Logger)EventStoreOption{
+func WithEventStoreLogger(logger edatlog.Logger)EventStoreOption{
 	return func(store *EventStore) {
 		store.logger = logger
 	}

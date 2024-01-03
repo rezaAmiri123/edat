@@ -12,7 +12,7 @@ import (
 type Producer struct{
 	conn stan.Conn
 	serializer Serializer
-	logger log.Logger
+	logger edatlog.Logger
 }
 
 var _ msg.Producer = (*Producer)(nil)
@@ -21,7 +21,7 @@ func NewProducer(conn stan.Conn, options ...ProducerOption)*Producer{
 	p := &Producer{
 		conn: conn,
 		serializer: DefaultSerializer,
-		logger: log.DefaultLogger,
+		logger: edatlog.DefaultLogger,
 	}
 
 	for _, option := range options{
@@ -33,12 +33,12 @@ func NewProducer(conn stan.Conn, options ...ProducerOption)*Producer{
 
 func(p *Producer)Send(ctx context.Context, channel string, message msg.Message)error{
 	logger := p.logger.Sub(
-		log.String("channel", channel),
+		edatlog.String("channel", channel),
 	)
 
 	data, err := p.serializer.Serialize(message)
 	if err!= nil{
-		logger.Error("failed to marshal message", log.Error(err))
+		logger.Error("failed to marshal message", edatlog.Error(err))
 		return fmt.Errorf("message could not be marshalled")
 	}
 
@@ -53,7 +53,7 @@ func(p *Producer)Close(ctx context.Context)error{
 	p.logger.Trace("closing message destination")
 	err := p.conn.Close()
 	if err!= nil{
-		p.logger.Error("error closing message destination", log.Error(err))
+		p.logger.Error("error closing message destination", edatlog.Error(err))
 	}
 
 	return err

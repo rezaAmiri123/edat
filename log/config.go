@@ -1,4 +1,4 @@
-package log
+package edatlog
 
 type Level string
 

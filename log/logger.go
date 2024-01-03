@@ -1,4 +1,4 @@
-package log
+package edatlog
 
 import (
 	"time"

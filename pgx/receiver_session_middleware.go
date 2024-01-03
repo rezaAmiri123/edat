@@ -10,7 +10,7 @@ import (
 	"github.com/rezaAmiri123/edat/msg"
 )
 
-func ReceiverSessionMiddleware(conn *pgxpool.Pool, logger log.Logger) func(msg.MessageReceiver) msg.MessageReceiver {
+func ReceiverSessionMiddleware(conn *pgxpool.Pool, logger edatlog.Logger) func(msg.MessageReceiver) msg.MessageReceiver {
 	return func(next msg.MessageReceiver) msg.MessageReceiver {
 		return msg.ReceiveMessageFunc(func(ctx context.Context, message msg.Message) (err error) {
 			var tx pgx.Tx
