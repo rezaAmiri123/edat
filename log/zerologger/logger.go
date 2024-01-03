@@ -18,7 +18,7 @@ func Logger(logger zerolog.Logger) edatlog.Logger {
 	zLog := logger.With().CallerWithSkipFrameCount(3).Logger()
 	return &zerologLogger{l: zLog}
 }
-func NewZeroLogger(cfg edatlog.Config) (edatlog.Logger, error) {
+func NewZeroLogger(cfg edatlog.Config) (zerolog.Logger, error) {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
@@ -43,8 +43,8 @@ func NewZeroLogger(cfg edatlog.Config) (edatlog.Logger, error) {
 			Logger()
 	}
 
-	zLog := logger.With().CallerWithSkipFrameCount(3).Logger()
-	return &zerologLogger{l: zLog}, nil
+	
+	return logger, nil
 }
 
 func (l *zerologLogger) Trace(msg string, fields ...edatlog.Field) {
