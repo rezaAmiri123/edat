@@ -24,6 +24,27 @@ type Consumer struct {
 
 var _ msg.Consumer = (*Consumer)(nil)
 
+func NewConsumer(conn stan.Conn, groupID string, options ...ConsumerOption)*Consumer{
+	c := &Consumer{
+		conn: conn,
+		queue: groupID,
+		subOptions: []stan.SubscriptionOption{
+			stan.SetManualAckMode(),
+			stan.AckWait(DefaultAckWait),
+			stan.DurableName("Durable"),	
+		},
+		ackWait: DefaultAckWait,
+		serializer: DefaultSerializer,
+		logger: edatlog.DefaultLogger,
+	}
+
+	for _, option := range options{
+		option(c)
+	}
+
+	return c
+}
+
 func (c *Consumer) Listen(ctx context.Context, channel string, subscription msg.ReceiveMessageFunc) error {
 	logger := c.logger.Sub(edatlog.String("Channel", channel))
 
