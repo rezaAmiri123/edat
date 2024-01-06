@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go/constant"
 	"math/rand"
 	"time"
 )

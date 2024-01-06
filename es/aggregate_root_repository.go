@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/rezaAmiri123/edat/core"
-	"github.com/rezaAmiri123/edat/log"
+	edatlog "github.com/rezaAmiri123/edat/log"
 )
 
 // AggregateRepository interface
@@ -19,7 +19,7 @@ type AggregateRepository interface {
 type AggregateRootRepository struct {
 	constructor func() Aggregate
 	store       AggregateRootStore
-	logger      log.Logger
+	logger      edatlog.Logger
 }
 
 // AggregateRootStoreMiddleware interface for embedding stores
@@ -36,7 +36,7 @@ func NewAggregateRootRepository(constructor func() Aggregate, store AggregateRoo
 	r := &AggregateRootRepository{
 		constructor: constructor,
 		store: store,
-		logger: log.DefaultLogger,
+		logger: edatlog.DefaultLogger,
 	}
 
 	r.logger.Trace("es.AggregateRootRepository constructed")
@@ -101,7 +101,7 @@ func(r *AggregateRootRepository)save(ctx context.Context, command core.Command, 
 	}
 	err = r.store.Save(ctx, root)
 	if err!= nil{
-		r.logger.Error("error saving aggregate root", log.Error(err))
+		r.logger.Error("error saving aggregate root", edatlog.Error(err))
 		return err
 	}
 

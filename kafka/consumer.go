@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/rezaAmiri123/edat/log"
+	edatlog "github.com/rezaAmiri123/edat/log"
 	"github.com/rezaAmiri123/edat/msg"
 	"github.com/segmentio/kafka-go"
 )
@@ -54,7 +54,7 @@ func (c *Consumer) Listen(ctx context.Context, channel string, consumer msg.Rece
 	defer func(reader *kafka.Reader) {
 		err := reader.Close()
 		if err != nil {
-			c.logger.Error("error closing kafka-go reader", log.Error(err))
+			c.logger.Error("error closing kafka-go reader", edatlog.Error(err))
 		}
 	}(reader)
 
@@ -104,7 +104,7 @@ func (c *Consumer) receiveMessage(ctx context.Context, reader *kafka.Reader, con
 	case err = <-errc:
 		if err == nil {
 			if ackErr := reader.CommitMessages(ctx, m); ackErr != nil {
-				c.logger.Error("error acknowledging message", log.Error(err))
+				c.logger.Error("error acknowledging message", edatlog.Error(err))
 			}
 		}
 	case <-ctx.Done():
