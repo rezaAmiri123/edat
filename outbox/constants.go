@@ -1,6 +1,10 @@
 package outbox
 
-import "github.com/rezaAmiri123/edat/retry"
+import (
+	"time"
+
+	"github.com/rezaAmiri123/edat/retry"
+)
 
 // Package defaults
 const (
