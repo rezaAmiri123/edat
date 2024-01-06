@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/rezaAmiri123/edat/log"
+	edatlog "github.com/rezaAmiri123/edat/log"
 	"github.com/rezaAmiri123/edat/msg"
 )
 
@@ -17,7 +17,7 @@ func ReceiverSessionMiddleware(conn *pgxpool.Pool, logger edatlog.Logger) func(m
 
 			tx, err = conn.Begin(ctx)
 			if err != nil {
-				logger.Error("error while starting the request transaction", log.Error(err))
+				logger.Error("error while starting the request transaction", edatlog.Error(err))
 				return fmt.Errorf("failed to start transaction: %s", err.Error())
 			}
 
@@ -29,18 +29,18 @@ func ReceiverSessionMiddleware(conn *pgxpool.Pool, logger edatlog.Logger) func(m
 				case p != nil:
 					txErr := tx.Rollback(ctx)
 					if txErr != nil {
-						logger.Error("error while rolling back th message receiver transaction during panic", log.Error(txErr))
+						logger.Error("error while rolling back th message receiver transaction during panic", edatlog.Error(txErr))
 					}
 					panic(p)
 				case err != nil:
 					txErr := tx.Rollback(ctx)
 					if txErr != nil {
-						logger.Error("error while rolling back the message receiver transaction", log.Error(txErr))
+						logger.Error("error while rolling back the message receiver transaction", edatlog.Error(txErr))
 					}
 				default:
 					txErr := tx.Commit(ctx)
 					if txErr!= nil{
-						logger.Error("error while committing the message receiver transaction", log.Error(txErr))
+						logger.Error("error while committing the message receiver transaction", edatlog.Error(txErr))
 					}
 				}
 			}()
