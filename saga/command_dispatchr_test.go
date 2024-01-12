@@ -2,6 +2,7 @@ package saga_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/rezaAmiri123/edat/core"
@@ -17,12 +18,12 @@ import (
 )
 
 type (
-	sagaCommand        struct{ Value string }
-	unregistredCommand struct{ Value string }
+	sagaCommand         struct{ Value string }
+	unregisteredCommand struct{ Value string }
 )
 
-func (sagaCommand) CommandName() string        { return "saga_test.sagaCommand" }
-func (unregistredCommand) CommandName() string { return "saga_test.unregistredCommand" }
+func (sagaCommand) CommandName() string         { return "saga_test.sagaCommand" }
+func (unregisteredCommand) CommandName() string { return "saga_test.unregisteredCommand" }
 
 func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 	type handler struct {
@@ -34,17 +35,17 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 		handlers  []handler
 		logger    edatlog.Logger
 	}
-	type args struct{
-		ctx context.Context
+	type args struct {
+		ctx     context.Context
 		message msg.Message
 	}
 
 	core.RegisterDefaultMarshaller(coretest.NewTestMarshaller())
 	core.RegisterCommands(sagaCommand{})
 
-	tests := map[string]struct{
-		fields fields
-		args args
+	tests := map[string]struct {
+		fields  fields
+		args    args
 		wantErr bool
 	}{
 		"Success": {
@@ -55,7 +56,7 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 				handlers: []handler{{
 					cmd: sagaCommand{},
 					fn: func(ctx context.Context, c saga.Command) ([]msg.Reply, error) {
-						return []msg.Reply{msg.WithSuccess()},nil
+						return []msg.Reply{msg.WithSuccess()}, nil
 					},
 				}},
 				logger: logtest.MockLogger(func(m *logmocks.Logger) {
@@ -73,18 +74,184 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 					msg.MessageCommandReplyChannel: "reply-channel",
 				})),
 			},
-			 wantErr: false,
+			wantErr: false,
+		},
+		"HandlerError": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {
+					m.On("PublishReply", mock.Anything, mock.AnythingOfType("msg.Failure"), mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				}),
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return nil, fmt.Errorf("handler error")
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Sub", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Debug", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "saga command handler returned an error", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					msg.MessageCommandName:         sagaCommand{}.CommandName(),
+					saga.MessageCommandSagaID:      "test-id",
+					saga.MessageCommandSagaName:    "test",
+					msg.MessageCommandReplyChannel: "reply-channel",
+				})),
+			},
+			wantErr: false,
+		},
+		"UnregisteredCommand": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {}),
+				handlers: []handler{
+					{
+						cmd: unregisteredCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Sub", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Debug", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "error decoding saga command message payload", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					msg.MessageCommandName:         unregisteredCommand{}.CommandName(),
+					saga.MessageCommandSagaID:      "test-id",
+					saga.MessageCommandSagaName:    "test",
+					msg.MessageCommandReplyChannel: "reply-channel",
+				})),
+			},
+			wantErr: false,
+		},
+		"MissingCommandName": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {}),
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "error reading command name", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					saga.MessageCommandSagaID:      "test-id",
+					saga.MessageCommandSagaName:    "test",
+					msg.MessageCommandReplyChannel: "reply-channel",
+				})),
+			},
+			wantErr: false,
+		},
+		"MissingReplyChannel": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {}),
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Sub", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Debug", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "error reading reply channel", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					msg.MessageCommandName:      sagaCommand{}.CommandName(),
+					saga.MessageCommandSagaID:   "test-id",
+					saga.MessageCommandSagaName: "test",
+				})),
+			},
+			wantErr: false,
+		},
+		"MissingSagaID": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {}),
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "error reading saga id", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					msg.MessageCommandName:         sagaCommand{}.CommandName(),
+					saga.MessageCommandSagaName:    "test",
+					msg.MessageCommandReplyChannel: "reply-channel",
+				})),
+			},
+			wantErr: false,
+		},
+		"MissingSagaName": {
+			fields: fields{
+				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {}),
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
+					},
+				},
+				logger: logtest.MockLogger(func(m *logmocks.Logger) {
+					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
+					m.On("Error", "error reading saga name", mock.Anything)
+				}),
+			},
+			args: args{
+				ctx: context.Background(),
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
+					msg.MessageCommandName:         sagaCommand{}.CommandName(),
+					saga.MessageCommandSagaID:      "test-id",
+					msg.MessageCommandReplyChannel: "reply-channel",
+				})),
+			},
+			wantErr: false,
 		},
 	}
 
-	for name, tt := range tests{
+	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			d := saga.NewCommandDispatcher(tt.fields.publisher, saga.WithCommandDispatcherLogger(tt.fields.logger))
-			for _, handler := range tt.fields.handlers{
+			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.cmd, handler.fn)
 			}
-			err := d.ReceiveMessage(tt.args.ctx,tt.args.message)
-			if err != nil != tt.wantErr{
+			err := d.ReceiveMessage(tt.args.ctx, tt.args.message)
+			if err != nil != tt.wantErr {
 				t.Errorf("ReceiveMessage() error = %v, watErr %v", err, tt.wantErr)
 			}
 			mock.AssertExpectationsForObjects(t, tt.fields.publisher, tt.fields.logger)

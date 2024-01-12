@@ -88,9 +88,9 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message msg.Mess
 
 	replies, err := handler(ctx, cmdMsg)
 	if err != nil {
-		logger.Error("saga command handler returned a error", edatlog.Error(err))
+		logger.Error("saga command handler returned an error", edatlog.Error(err))
 		rerr := d.sendReplies(ctx, replyChannel, []msg.Reply{msg.WithFailure()}, correlationHeaders)
-		if rerr != nil{
+		if rerr != nil {
 			logger.Error("error sending replies", edatlog.Error(rerr))
 			return rerr
 		}
@@ -98,7 +98,7 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message msg.Mess
 	}
 
 	err = d.sendReplies(ctx, replyChannel, replies, correlationHeaders)
-	if err != nil{
+	if err != nil {
 		logger.Error("error sending replies", edatlog.Error(err))
 		return err
 	}
@@ -131,20 +131,6 @@ func (d *CommandDispatcher) commandMessageInfo(message msg.Message) (string, str
 	return commandName, sagaID, sagaName, nil
 }
 
-func (d *CommandDispatcher) correlationHeaders(headers msg.Headers) msg.Headers {
-	replyHeaders := make(map[string]string)
-	for key, value := range headers {
-		if key == msg.MessageCommandName {
-			continue
-		}
-		if strings.HasPrefix(key, msg.MessageCommandPrefix) {
-			replyHeader := msg.MessageReplyPrefix + key[len(msg.MessageCommandPrefix):]
-			replyHeaders[replyHeader] = value
-		}
-	}
-	return replyHeaders
-}
-
 func (d *CommandDispatcher) sendReplies(ctx context.Context, replyChannel string, replies []msg.Reply, correlationHeaders msg.Headers) error {
 	for _, reply := range replies {
 		if err := d.publisher.PublishReply(ctx, reply.Reply(),
@@ -159,10 +145,18 @@ func (d *CommandDispatcher) sendReplies(ctx context.Context, replyChannel string
 	return nil
 }
 
-// func (d *CommandDispatcher){
+func (d *CommandDispatcher) correlationHeaders(headers msg.Headers) msg.Headers {
+	replyHeaders := make(map[string]string)
+	for key, value := range headers {
+		if key == msg.MessageCommandName {
+			continue
+		}
 
-// }
+		if strings.HasPrefix(key, msg.MessageCommandPrefix) {
+			replyHeader := msg.MessageReplyPrefix + key[len(msg.MessageCommandPrefix):]
+			replyHeaders[replyHeader] = value
+		}
+	}
 
-// func (d *CommandDispatcher){
-
-// }
+	return replyHeaders
+}
