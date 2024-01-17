@@ -1,7 +1,7 @@
 package edatstan
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 	"github.com/nats-io/stan.go"
 	"github.com/rezaAmiri123/edat/msg"
 )
