@@ -78,7 +78,7 @@ func (o *Orchestrator) Start(ctx context.Context, sagaData core.SagaData) (*Inst
 
 // ReplyChannel returns the channel replies are to be received from msg.Subscribers
 func (o *Orchestrator) ReplyChannel() string {
-	return o.ReplyChannel()
+	return o.definition.ReplyChannel()
 }
 
 // ReceiveMessage implements msg.MessageReceiver.ReceiveMessage
