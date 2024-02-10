@@ -152,7 +152,7 @@ func (o *Orchestrator) replyMessageInfo(message msg.Message) (string, string, st
 
 	sagaName, err = message.Headers().GetRequired(MessageReplySagaName)
 	if err != nil {
-		o.logger.Error("error reading saga name", log.Error(err))
+		o.logger.Error("error reading saga name", edatlog.Error(err))
 		return "", "", "", err
 	}
 
@@ -312,7 +312,7 @@ func (o *Orchestrator) executeNextStep(ctx context.Context, stepCtx stepContext,
 		updatedStepContext: nextCtx,
 	}
 
-	step.exexute(ctx, sagaData, stepCtx.compensating)(results)
+	step.execute(ctx, sagaData, stepCtx.compensating)(results)
 
 	return results
 }
