@@ -16,8 +16,8 @@ type CommandMessagePublisher struct {
 	mock.Mock
 }
 
-// PublisheCommand provides a mock function with given fields: ctx, replyChannel, command, options
-func (_m *CommandMessagePublisher) PublisheCommand(ctx context.Context, replyChannel string, command core.Command, options ...msg.MessageOption) error {
+// PublishCommand provides a mock function with given fields: ctx, replyChannel, command, options
+func (_m *CommandMessagePublisher) PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...msg.MessageOption) error {
 	_va := make([]interface{}, len(options))
 	for _i := range options {
 		_va[_i] = options[_i]

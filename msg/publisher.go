@@ -11,7 +11,7 @@ import (
 
 // CommandMessagePublisher interface
 type CommandMessagePublisher interface {
-	PublisheCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error
+	PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error
 }
 
 // EntityEventMessagePublisher interface
@@ -66,7 +66,7 @@ func NewPublisher(producer Producer, options ...PublisherOption)*Publisher{
 }
 
 // PublishCommand serializes a command into a message with command specific headers and publishes it to a producer
-func(p *Publisher)PublisheCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error{
+func(p *Publisher)PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error{
 	msgOptions := []MessageOption{
 		WithHeaders(Headers{
 			MessageCommandName: command.CommandName(),
