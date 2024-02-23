@@ -1,6 +1,8 @@
 package saga
 
-import "context"
+import (
+	"context"
+)
 
 // InstanceStore interface
 type InstanceStore interface {

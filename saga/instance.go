@@ -13,14 +13,7 @@ type Instance struct {
 }
 
 // NewSagaInstance constructor for *SagaInstances
-func NewSagaInstance(
-	sagaID string,
-	sagaName string,
-	sagaData core.SagaData,
-	currentStep int,
-	endState bool,
-	compensating bool,
-) *Instance {
+func NewSagaInstance(sagaName, sagaID string, sagaData core.SagaData, currentStep int, endState, compensating bool) *Instance {
 	return &Instance{
 		sagaID:       sagaID,
 		sagaName:     sagaName,
