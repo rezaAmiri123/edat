@@ -53,12 +53,14 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 				publisher: msgtest.MockReplyMessagePublisher(func(m *msgmocks.ReplyMessagePublisher) {
 					m.On("PublishReply", mock.Anything, mock.AnythingOfType("msg.Success"), mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				}),
-				handlers: []handler{{
-					cmd: sagaCommand{},
-					fn: func(ctx context.Context, c saga.Command) ([]msg.Reply, error) {
-						return []msg.Reply{msg.WithSuccess()}, nil
+				handlers: []handler{
+					{
+						cmd: sagaCommand{},
+						fn: func(ctx context.Context, command saga.Command) ([]msg.Reply, error) {
+							return []msg.Reply{msg.WithSuccess()}, nil
+						},
 					},
-				}},
+				},
 				logger: logtest.MockLogger(func(m *logmocks.Logger) {
 					m.On("Sub", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(m)
 					m.On("Trace", mock.AnythingOfType("string"), mock.Anything)
@@ -67,7 +69,7 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(msg.Headers{
+				message: msg.NewMessage([]byte(`{"Value":""}`), msg.WithHeaders(map[string]string{
 					msg.MessageCommandName:         sagaCommand{}.CommandName(),
 					saga.MessageCommandSagaID:      "test-id",
 					saga.MessageCommandSagaName:    "test",
@@ -243,16 +245,14 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 			wantErr: false,
 		},
 	}
-
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			d := saga.NewCommandDispatcher(tt.fields.publisher, saga.WithCommandDispatcherLogger(tt.fields.logger))
 			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.cmd, handler.fn)
 			}
-			err := d.ReceiveMessage(tt.args.ctx, tt.args.message)
-			if err != nil != tt.wantErr {
-				t.Errorf("ReceiveMessage() error = %v, watErr %v", err, tt.wantErr)
+			if err := d.ReceiveMessage(tt.args.ctx, tt.args.message); (err != nil) != tt.wantErr {
+				t.Errorf("ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			mock.AssertExpectationsForObjects(t, tt.fields.publisher, tt.fields.logger)
 		})

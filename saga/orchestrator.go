@@ -18,7 +18,7 @@ type Orchestrator struct {
 	logger        edatlog.Logger
 }
 
-const sagaNotStated = -1
+const sagaNotStarted = -1
 
 var _ msg.MessageReceiver = (*Orchestrator)(nil)
 
@@ -61,13 +61,13 @@ func (o *Orchestrator) Start(ctx context.Context, sagaData core.SagaData) (*Inst
 	logger.Trace("executing saga starting hook")
 	o.definition.OnHook(SagaStarting, instance)
 
-	results := o.executeNextStep(ctx, stepContext{step: sagaNotStated}, sagaData)
+	results := o.executeNextStep(ctx, stepContext{step: sagaNotStarted}, sagaData)
 	if results.failure != nil {
-		logger.Error("error while startng saga orchestration", edatlog.Error(results.failure))
-		return nil, results.failure
+		logger.Error("error while starting saga orchestration", edatlog.Error(results.failure))
+		return nil, err
 	}
 
-	err = o.processesResults(ctx, instance, results)
+	err = o.processResults(ctx, instance, results)
 	if err != nil {
 		logger.Error("error while processing results", edatlog.Error(err))
 		return nil, err
@@ -78,7 +78,7 @@ func (o *Orchestrator) Start(ctx context.Context, sagaData core.SagaData) (*Inst
 
 // ReplyChannel returns the channel replies are to be received from msg.Subscribers
 func (o *Orchestrator) ReplyChannel() string {
-	return o.ReplyChannel()
+	return o.definition.ReplyChannel()
 }
 
 // ReceiveMessage implements msg.MessageReceiver.ReceiveMessage
@@ -89,7 +89,7 @@ func (o *Orchestrator) ReceiveMessage(ctx context.Context, message msg.Message) 
 	}
 
 	if sagaID == "" || (sagaName == "" || sagaName != o.definition.SagaName()) {
-		o.logger.Error("connot process message", edatlog.String("NameValue", sagaName), edatlog.String("IDValue", sagaID))
+		o.logger.Error("cannot process message", edatlog.String("NameValue", sagaName), edatlog.String("IDValue", sagaID))
 		return nil
 	}
 
@@ -100,7 +100,7 @@ func (o *Orchestrator) ReceiveMessage(ctx context.Context, message msg.Message) 
 		edatlog.String("MessageID", message.ID()),
 	)
 
-	logger.Trace("received saga reply message")
+	logger.Debug("received saga reply message")
 
 	reply, err := core.DeserializeReply(replyName, message.Payload())
 	if err != nil {
@@ -125,7 +125,7 @@ func (o *Orchestrator) ReceiveMessage(ctx context.Context, message msg.Message) 
 		return err
 	}
 
-	err = o.processesResults(ctx, instance, results)
+	err = o.processResults(ctx, instance, results)
 	if err != nil {
 		logger.Error("error while processing results", edatlog.Error(err))
 		return err
@@ -152,14 +152,14 @@ func (o *Orchestrator) replyMessageInfo(message msg.Message) (string, string, st
 
 	sagaName, err = message.Headers().GetRequired(MessageReplySagaName)
 	if err != nil {
-		o.logger.Error("error reading saga name", log.Error(err))
+		o.logger.Error("error reading saga name", edatlog.Error(err))
 		return "", "", "", err
 	}
 
 	return replyName, sagaID, sagaName, nil
 }
 
-func (o *Orchestrator) processesResults(ctx context.Context, instance *Instance, results *stepResults) error {
+func (o *Orchestrator) processResults(ctx context.Context, instance *Instance, results *stepResults) error {
 	var err error
 
 	logger := o.logger.Sub(
@@ -182,6 +182,7 @@ func (o *Orchestrator) processesResults(ctx context.Context, instance *Instance,
 					return err
 				}
 			}
+
 			instance.updateStepContext(results.updatedStepContext)
 
 			if results.updatedSagaData != nil {
@@ -194,23 +195,25 @@ func (o *Orchestrator) processesResults(ctx context.Context, instance *Instance,
 
 			err = o.instanceStore.Update(ctx, instance)
 			if err != nil {
-				logger.Error("error saving saga nstance", edatlog.Error(err))
+				logger.Error("error saving saga instance", edatlog.Error(err))
 				return err
 			}
+
 			if !results.local {
 				logger.Trace("exiting step loop")
 				break
 			}
 
 			// handle a local success outcome and kick off the next step
-			logger.Trace("handling loal sucess result")
+			logger.Trace("handling local success result")
 			results, err = o.handleReply(ctx, results.updatedStepContext, results.updatedSagaData, msg.WithSuccess())
 			if err != nil {
-				logger.Error("error handling local sucess result", edatlog.Error(err))
+				logger.Error("error handling local success result", edatlog.Error(err))
 				return err
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -239,11 +242,10 @@ func (o *Orchestrator) handleReply(ctx context.Context, stepCtx stepContext, sag
 		edatlog.String("ReplyName", replyName),
 	)
 
-	if stepCtx.step <= len(o.definition.Steps()) || stepCtx.step < 0 {
+	if stepCtx.step >= len(o.definition.Steps()) || stepCtx.step < 0 {
 		logger.Error("current step is out of bounds", edatlog.Int("Step", stepCtx.step))
 		return nil, fmt.Errorf("current step is out of bounds: 0-%d, got %d", len(o.definition.Steps()), stepCtx.step)
 	}
-
 	step := o.definition.Steps()[stepCtx.step]
 
 	// handle specific replies
@@ -268,7 +270,7 @@ func (o *Orchestrator) handleReply(ctx context.Context, stepCtx stepContext, sag
 
 	switch {
 	case success:
-		logger.Trace("advacing to next step")
+		logger.Trace("advancing to next step")
 		return o.executeNextStep(ctx, stepCtx, sagaData), nil
 	case stepCtx.compensating:
 		// we're already failing, we can't fail any more
@@ -278,8 +280,8 @@ func (o *Orchestrator) handleReply(ctx context.Context, stepCtx stepContext, sag
 		logger.Trace("compensating to previous step")
 		return o.executeNextStep(ctx, stepCtx.compensate(), sagaData), nil
 	}
-
 }
+
 func (o *Orchestrator) executeNextStep(ctx context.Context, stepCtx stepContext, sagaData core.SagaData) *stepResults {
 	var stepDelta = 1
 	var direction = 1
@@ -291,7 +293,7 @@ func (o *Orchestrator) executeNextStep(ctx context.Context, stepCtx stepContext,
 
 	sagaSteps := o.definition.Steps()
 
-	for i := stepCtx.step + direction; i > 0 && i < len(sagaSteps); i += direction {
+	for i := stepCtx.step + direction; i >= 0 && i < len(sagaSteps); i += direction {
 		if step = sagaSteps[i]; step.hasInvocableAction(ctx, sagaData, stepCtx.compensating) {
 			break
 		}
@@ -312,7 +314,7 @@ func (o *Orchestrator) executeNextStep(ctx context.Context, stepCtx stepContext,
 		updatedStepContext: nextCtx,
 	}
 
-	step.exexute(ctx, sagaData, stepCtx.compensating)(results)
+	step.execute(ctx, sagaData, stepCtx.compensating)(results)
 
 	return results
 }
