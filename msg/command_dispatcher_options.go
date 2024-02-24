@@ -7,7 +7,7 @@ type CommandDispatcherOption func(consumer *CommandDispatcher)
 
 // WithCommandDispatcherLogger is an option to set the log.Logger of the CommandDispatcher
 func WithCommandDispatcherLogger(logger edatlog.Logger) CommandDispatcherOption {
-	return func(consumer *CommandDispatcher) {
-		consumer.logger = logger
+	return func(dispatcher *CommandDispatcher) {
+		dispatcher.logger = logger
 	}
 }

@@ -18,8 +18,6 @@ type message struct {
 	payload []byte
 }
 
-var _ Message = (*message)(nil)
-
 // NewMessage message constructor
 func NewMessage(payload []byte, options ...MessageOption) Message {
 	id := uuid.New().String()

@@ -17,8 +17,6 @@ type entityEventMessage struct {
 	headers    Headers
 }
 
-var _ EntityEvent = (*entityEventMessage)(nil)
-
 func (m entityEventMessage) EntityID() string {
 	return m.entityID
 }

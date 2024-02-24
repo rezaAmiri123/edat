@@ -28,6 +28,6 @@ func (h Headers) GetRequired(key string) (string, error) {
 }
 
 // Set sets or overwrites the key with the value
-func(h Headers)Set(key, value string){
+func (h Headers) Set(key, value string) {
 	h[key] = value
 }

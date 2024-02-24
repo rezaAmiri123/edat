@@ -13,43 +13,36 @@ func TestReceiveMessageFunc_ReceiveMessage(t *testing.T) {
 		ctx     context.Context
 		message msg.Message
 	}
-
 	tests := map[string]struct {
-		args    args
 		f       msg.ReceiveMessageFunc
+		args    args
 		wantErr bool
 	}{
 		"Success": {
-			args: args{
-				ctx: context.Background(),
-				message: msg.NewMessage([]byte(`{}`)),
-			},
 			f: func(ctx context.Context, m msg.Message) error {
 				return nil
+			},
+			args: args{
+				ctx:     context.Background(),
+				message: msg.NewMessage([]byte(`{}`)),
 			},
 			wantErr: false,
 		},
 		"ReceiverError": {
-			args: args{
-				ctx: context.Background(),
-				message: msg.NewMessage([]byte(`{}`)),
-			},
 			f: func(ctx context.Context, m msg.Message) error {
 				return fmt.Errorf("receiver-error")
 			},
+			args: args{
+				ctx:     context.Background(),
+				message: msg.NewMessage([]byte(`{}`)),
+			},
 			wantErr: true,
 		},
-		
 	}
-
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := tt.f.ReceiveMessage(tt.args.ctx, tt.args.message)
-			if (err != nil) != tt.wantErr {
+			if err := tt.f.ReceiveMessage(tt.args.ctx, tt.args.message); (err != nil) != tt.wantErr {
 				t.Errorf("ReceiveMessage() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if err!= nil{
-				t.Logf("Error(): %v", err)
 			}
 		})
 	}

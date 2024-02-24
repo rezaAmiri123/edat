@@ -10,10 +10,9 @@ import (
 
 func TestReplyBuilder_Failure(t *testing.T) {
 	type fields struct {
-		reply  core.Reply
-		header msg.Headers
+		reply   core.Reply
+		headers map[string]string
 	}
-
 	tests := map[string]struct {
 		fields fields
 		want   msg.Reply
@@ -21,23 +20,22 @@ func TestReplyBuilder_Failure(t *testing.T) {
 		"Success": {
 			fields: fields{
 				reply: msg.Failure{},
-				header: msg.Headers{
+				headers: map[string]string{
 					"custom": "value",
 				},
 			},
-			want: msg.NewReply(msg.Failure{}, msg.Headers{
+			want: msg.NewReply(msg.Failure{}, map[string]string{
 				msg.MessageReplyName:    msg.Failure{}.ReplyName(),
-				msg.MessageReplyOutcome: msg.ReplyOutcomesFailure,
+				msg.MessageReplyOutcome: msg.ReplyOutcomeFailure,
 				"custom":                "value",
 			}),
 		},
 	}
-
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			b := msg.WithReply(tt.fields.reply).Headers(tt.fields.header)
+			b := msg.WithReply(tt.fields.reply).Headers(tt.fields.headers)
 			if got := b.Failure(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Failure() = %v, want=%v", got, tt.want)
+				t.Errorf("Failure() = %v, want %v", got, tt.want)
 			}
 		})
 	}

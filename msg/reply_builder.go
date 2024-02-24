@@ -6,14 +6,14 @@ import "github.com/rezaAmiri123/edat/core"
 func WithReply(reply core.Reply) *ReplyBuilder {
 	return &ReplyBuilder{
 		reply:   reply,
-		headers: make(Headers),
+		headers: map[string]string{},
 	}
 }
 
 // ReplyBuilder is used to build custom replies
 type ReplyBuilder struct {
 	reply   core.Reply
-	headers Headers
+	headers map[string]string
 }
 
 // Reply replaces the reply to be wrapped
@@ -23,7 +23,7 @@ func (b *ReplyBuilder) Reply(reply core.Reply) *ReplyBuilder {
 }
 
 // Headers adds headers to include with the reply
-func (b *ReplyBuilder) Headers(headers Headers) *ReplyBuilder {
+func (b *ReplyBuilder) Headers(headers map[string]string) *ReplyBuilder {
 	for key, value := range headers {
 		b.headers[key] = value
 	}
@@ -51,7 +51,7 @@ func (b *ReplyBuilder) Failure() Reply {
 		b.reply = Failure{}
 	}
 
-	b.headers[MessageReplyOutcome] = ReplyOutcomesFailure
+	b.headers[MessageReplyOutcome] = ReplyOutcomeFailure
 	b.headers[MessageReplyName] = b.reply.ReplyName()
 
 	return &replyMessage{

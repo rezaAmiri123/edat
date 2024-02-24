@@ -2,6 +2,7 @@ package msg
 
 import "github.com/rezaAmiri123/edat/core"
 
+
 // DomainEvent interface for events that are shared across the domain
 type DomainEvent interface {
 	core.Event
@@ -18,8 +19,6 @@ type eventMessage struct {
 	event   core.Event
 	headers Headers
 }
-
-var _ Event = (*eventMessage)(nil)
 
 func (m eventMessage) Event() core.Event {
 	return m.event

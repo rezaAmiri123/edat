@@ -1,5 +1,7 @@
 package msg
 
+import "github.com/rezaAmiri123/edat/es"
+
 // MessageOption options for Message
 type MessageOption func(m *message)
 
@@ -26,5 +28,13 @@ func WithHeaders(headers Headers) MessageOption {
 		for key, value := range headers {
 			m.headers[key] = value
 		}
+	}
+}
+
+// WithAggregateInfo is an option to set additional Aggregate specific headers
+func WithAggregateInfo(a *es.AggregateRoot) MessageOption {
+	return func(m *message) {
+		m.headers[MessageEventEntityName] = a.AggregateName()
+		m.headers[MessageEventEntityID] = a.AggregateID()
 	}
 }

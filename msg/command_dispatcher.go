@@ -24,7 +24,7 @@ var _ MessageReceiver = (*CommandDispatcher)(nil)
 func NewCommandDispatcher(publisher ReplyMessagePublisher, options ...CommandDispatcherOption) *CommandDispatcher {
 	c := &CommandDispatcher{
 		publisher: publisher,
-		handlers:  make(map[string]CommandHandlerFunc),
+		handlers:  map[string]CommandHandlerFunc{},
 		logger:    edatlog.DefaultLogger,
 	}
 
@@ -32,14 +32,14 @@ func NewCommandDispatcher(publisher ReplyMessagePublisher, options ...CommandDis
 		option(c)
 	}
 
-	c.logger.Trace("msg.Commanddispatcher constructed")
+	c.logger.Trace("msg.CommandDispatcher constructed")
 
 	return c
 }
 
 // Handle adds a new Command that will be handled by handler
 func (d *CommandDispatcher) Handle(cmd core.Command, handler CommandHandlerFunc) *CommandDispatcher {
-	d.logger.Trace("command handler added", edatlog.String("commandName", cmd.CommandName()))
+	d.logger.Trace("command handler added", edatlog.String("CommandName", cmd.CommandName()))
 	d.handlers[cmd.CommandName()] = handler
 	return d
 }
@@ -53,7 +53,7 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message Message)
 	}
 
 	logger := d.logger.Sub(
-		edatlog.String("commandName", commandName),
+		edatlog.String("CommandName", commandName),
 		edatlog.String("MessageID", message.ID()),
 	)
 
@@ -89,7 +89,7 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message Message)
 		logger.Error("command handler returned an error", edatlog.Error(err))
 		rerr := d.sendReplies(ctx, replyChannel, []Reply{WithFailure()}, correlationHeaders)
 		if rerr != nil {
-			logger.Error("error sending replies", edatlog.Error(err))
+			logger.Error("error sending replies", edatlog.Error(rerr))
 			return nil
 		}
 		return nil
@@ -100,22 +100,8 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message Message)
 		logger.Error("error sending replies", edatlog.Error(err))
 		return nil
 	}
+
 	return nil
-}
-
-func (d *CommandDispatcher) correlationHeaders(headers Headers) Headers {
-	replyHeaders := make(Headers)
-	for key, value := range headers {
-		if key == MessageCommandName {
-			continue
-		}
-		if strings.HasPrefix(key, MessageCommandPrefix) {
-			replyHeader := MessageReplyPrefix + key[len(MessageCommandPrefix):]
-			replyHeaders[replyHeader] = value
-		}
-	}
-
-	return replyHeaders
 }
 
 func (d *CommandDispatcher) sendReplies(ctx context.Context, replyChannel string, replies []Reply, correlationHeaders Headers) error {
@@ -131,4 +117,20 @@ func (d *CommandDispatcher) sendReplies(ctx context.Context, replyChannel string
 	}
 
 	return nil
+}
+
+func (d *CommandDispatcher) correlationHeaders(headers Headers) Headers {
+	replyHeaders := make(map[string]string)
+	for key, value := range headers {
+		if key == MessageCommandName {
+			continue
+		}
+
+		if strings.HasPrefix(key, MessageCommandPrefix) {
+			replyHeader := MessageReplyPrefix + key[len(MessageCommandPrefix):]
+			replyHeaders[replyHeader] = value
+		}
+	}
+
+	return replyHeaders
 }

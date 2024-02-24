@@ -16,13 +16,13 @@ type MessageSubscriber interface {
 
 // Subscriber receives domain events, commands, and replies from the consumer
 type Subscriber struct {
-	consumer    Consumer
-	logger      edatlog.Logger
-	middlewares []func(MessageReceiver) MessageReceiver
-	receivers   map[string][]MessageReceiver
-	stopping    chan struct{}
-	suscriberWg sync.WaitGroup
-	close       sync.Once
+	consumer     Consumer
+	logger       edatlog.Logger
+	middlewares  []func(MessageReceiver) MessageReceiver
+	receivers    map[string][]MessageReceiver
+	stopping     chan struct{}
+	subscriberWg sync.WaitGroup
+	close        sync.Once
 }
 
 // NewSubscriber constructs a new Subscriber
@@ -57,22 +57,8 @@ func (s *Subscriber) Subscribe(channel string, receiver MessageReceiver) {
 	if _, exists := s.receivers[channel]; !exists {
 		s.receivers[channel] = []MessageReceiver{}
 	}
-
 	s.logger.Trace("subscribed", edatlog.String("Channel", channel))
 	s.receivers[channel] = append(s.receivers[channel], s.chain(receiver))
-}
-
-func (s *Subscriber) chain(receiver MessageReceiver) MessageReceiver {
-	if len(s.middlewares) == 0 {
-		return receiver
-	}
-
-	r := s.middlewares[len(s.middlewares)-1](receiver)
-	for i := len(s.middlewares) - 2; i >= 0; i-- {
-		r = s.middlewares[i](r)
-	}
-
-	return r
 }
 
 // Start begins listening to all of the channels sending received messages into them
@@ -87,6 +73,7 @@ func (s *Subscriber) Start(ctx context.Context) error {
 			cancel()
 		case <-gCtx.Done():
 		}
+
 		return nil
 	})
 
@@ -95,10 +82,10 @@ func (s *Subscriber) Start(ctx context.Context) error {
 		channel := c
 		receivers := r
 
-		s.suscriberWg.Add(1)
+		s.subscriberWg.Add(1)
 
 		group.Go(func() error {
-			defer s.suscriberWg.Done()
+			defer s.subscriberWg.Done()
 			receiveMessageFunc := func(mCtx context.Context, message Message) error {
 				mCtx = core.SetRequestContext(
 					mCtx,
@@ -124,7 +111,6 @@ func (s *Subscriber) Start(ctx context.Context) error {
 
 				return rGroup.Wait()
 			}
-
 			err := s.consumer.Listen(gCtx, channel, receiveMessageFunc)
 			if err != nil {
 				s.logger.Error("consumer stopped and returned an error", edatlog.Error(err))
@@ -146,7 +132,7 @@ func (s *Subscriber) Stop(ctx context.Context) (err error) {
 		done := make(chan struct{})
 		go func() {
 			err = s.consumer.Close(ctx)
-			s.suscriberWg.Wait()
+			s.subscriberWg.Wait()
 			close(done)
 		}()
 
@@ -159,4 +145,17 @@ func (s *Subscriber) Stop(ctx context.Context) (err error) {
 	})
 
 	return
+}
+
+func (s *Subscriber) chain(receiver MessageReceiver) MessageReceiver {
+	if len(s.middlewares) == 0 {
+		return receiver
+	}
+
+	r := s.middlewares[len(s.middlewares)-1](receiver)
+	for i := len(s.middlewares) - 2; i >= 0; i-- {
+		r = s.middlewares[i](r)
+	}
+
+	return r
 }

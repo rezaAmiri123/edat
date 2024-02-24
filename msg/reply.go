@@ -4,8 +4,8 @@ import "github.com/rezaAmiri123/edat/core"
 
 // Reply outcomes
 const (
-	ReplyOutcomeSuccess  = "SUCCESS"
-	ReplyOutcomesFailure = "FAILURE"
+	ReplyOutcomeSuccess = "SUCCESS"
+	ReplyOutcomeFailure = "FAILURE"
 )
 
 // Reply interface
@@ -21,7 +21,7 @@ type replyMessage struct {
 
 // NewReply constructs a new reply with headers
 func NewReply(reply core.Reply, headers Headers) Reply {
-	return &replyMessage{reply: reply, headers: headers}
+	return &replyMessage{reply, headers}
 }
 
 // Reply returns the core.Reply
@@ -40,15 +40,16 @@ func SuccessReply(reply core.Reply) Reply {
 	if reply == nil {
 		return &replyMessage{
 			reply: Success{},
-			headers: Headers{
+			headers: map[string]string{
 				MessageReplyOutcome: ReplyOutcomeSuccess,
 				MessageReplyName:    Success{}.ReplyName(),
 			},
 		}
 	}
+
 	return &replyMessage{
 		reply: reply,
-		headers: Headers{
+		headers: map[string]string{
 			MessageReplyOutcome: ReplyOutcomeSuccess,
 			MessageReplyName:    reply.ReplyName(),
 		},
@@ -62,7 +63,7 @@ func FailureReply(reply core.Reply) Reply {
 		return &replyMessage{
 			reply: Failure{},
 			headers: map[string]string{
-				MessageReplyOutcome: ReplyOutcomesFailure,
+				MessageReplyOutcome: ReplyOutcomeFailure,
 				MessageReplyName:    Failure{}.ReplyName(),
 			},
 		}
@@ -71,7 +72,7 @@ func FailureReply(reply core.Reply) Reply {
 	return &replyMessage{
 		reply: reply,
 		headers: map[string]string{
-			MessageReplyOutcome: ReplyOutcomesFailure,
+			MessageReplyOutcome: ReplyOutcomeFailure,
 			MessageReplyName:    reply.ReplyName(),
 		},
 	}
@@ -81,7 +82,7 @@ func FailureReply(reply core.Reply) Reply {
 func WithSuccess() Reply {
 	return &replyMessage{
 		reply: Success{},
-		headers: Headers{
+		headers: map[string]string{
 			MessageReplyOutcome: ReplyOutcomeSuccess,
 			MessageReplyName:    Success{}.ReplyName(),
 		},
@@ -93,7 +94,7 @@ func WithFailure() Reply {
 	return &replyMessage{
 		reply: Failure{},
 		headers: map[string]string{
-			MessageReplyOutcome: ReplyOutcomesFailure,
+			MessageReplyOutcome: ReplyOutcomeFailure,
 			MessageReplyName:    Failure{}.ReplyName(),
 		},
 	}
